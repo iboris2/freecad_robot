@@ -3,7 +3,7 @@ import FreeCAD,FreeCADGui,Drawing, Part
 from xml.etree.ElementTree import fromstring, Element, ElementTree, tostring
 
 def parsePath(node):
-	path = {'x':[],'y':[]}
+	path = {'x':[0],'y':[0]}
 	CMDS = "MmLl"
 	s = node.attrib.get('d')
 	l = s.split()
@@ -11,13 +11,13 @@ def parsePath(node):
 	while(len(l) > 0):
 		cmd = l.pop()
 		if cmd in CMDS:
-			path['x'].append(int(l.pop()))
-			path['y'].append(int(l.pop()))
+			path['x'].append(int(float(l.pop())))
+			path['y'].append(int(float(l.pop())))
 	return path
 
 def findPlacement(bb, page, placed_bbox):
-	for x in range(int(page.XMin), int(page.XMax), 5):
-		for y in range(int(page.YMin), int(page.YMax), 5):
+	for x in range(int(page.XMin), int(page.XMax), 4):
+		for y in range(int(page.YMin), int(page.YMax), 4):
 			pos = FreeCAD.Vector(x,y,0)
 			bb.move(pos - bb.Center)
 			if page.isInside(bb):
@@ -39,12 +39,13 @@ placed_bbox=[]
 for obj in FreeCADGui.Selection.getSelectionEx():
 	for face in obj.SubObjects:
 		if type(face) != Part.Face:
-			break
+			continue
 		f = face.copy()
 		box = f.BoundBox
 		f.translate(box.Center * -1)
 		#f.translate(FreeCAD.Vector(box.XLength/2, box.YLength/2, box.ZLength/2))
 		svgproj = Drawing.projectToSVG(f,f.Surface.Axis)
+		FreeCAD.Console.PrintMessage( svgproj)
 		del f
 		
 		l_size=5
